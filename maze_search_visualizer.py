@@ -53,14 +53,16 @@ def find_neighbors(maze, pt):
 
 def depth_first_search(maze, start, end):
     if start == end:
-        return [start]
+        return [start], [start]
 
     neighbors = [start]
     explored = []
     parents = {}
 
     while len(neighbors) > 0:
-        if neighbors[-1] == end:
+        current = neighbors[-1]
+
+        if current == end:
             path = [end]
             child = end
 
@@ -72,31 +74,32 @@ def depth_first_search(maze, start, end):
                 if parent == start:
                     break
 
-            return path[::-1], len(explored)
+            return path[::-1], explored
 
-        new_neighbors = find_neighbors(maze, neighbors[-1])
-        explored.append(neighbors[-1])
+        new_neighbors = find_neighbors(maze, current)
+        explored.append(current)
         neighbors.pop()
 
         for new_neighbor in new_neighbors:
             if new_neighbor not in explored and new_neighbor not in neighbors:
-                parents[new_neighbor] = explored[-1]
+                parents[new_neighbor] = current
                 neighbors.append(new_neighbor)
 
-    else:
-        return
+    return None, explored
 
 
 def breadth_first_search(maze, start, end):
     if start == end:
-        return [start]
+        return [start], [start]
 
     neighbors = [start]
     explored = []
     parents = {}
 
     while len(neighbors) > 0:
-        if neighbors[0] == end:
+        current = neighbors[0]
+
+        if current == end:
             path = [end]
             child = end
 
@@ -108,24 +111,27 @@ def breadth_first_search(maze, start, end):
                 if parent == start:
                     break
 
-            return path[::-1], len(explored)
+            return path[::-1], explored
 
-        new_neighbors = find_neighbors(maze, neighbors[0])
-        explored.append(neighbors[0])
+        new_neighbors = find_neighbors(maze, current)
+        explored.append(current)
         neighbors.pop(0)
 
         for new_neighbor in new_neighbors:
             if new_neighbor not in explored and new_neighbor not in neighbors:
-                parents[new_neighbor] = explored[-1]
+                parents[new_neighbor] = current
                 neighbors.append(new_neighbor)
 
-    else:
-        return
+    return None, explored
 
 
 def find_way(maze, start, end, search,title_name="Maze Solution"):
-  
-    path, steps = search(maze, start, end)
+    search_result = search(maze, start, end)
+    if search_result is None:
+        print("Can't find a path...")
+        return
+
+    path, explored = search_result
     result_maze = copy.deepcopy(maze)
 
     if path:
@@ -133,6 +139,7 @@ def find_way(maze, start, end, search,title_name="Maze Solution"):
             i, j = position
             result_maze[i][j] = '*'
 
+        explored_set = set(explored)
         rows = len(result_maze)
         cols = len(result_maze[0])
 
@@ -149,6 +156,8 @@ def find_way(maze, start, end, search,title_name="Maze Solution"):
                     color = (0.16, 0.67, 0.38)
                 elif (r, c) == end:
                     color = (0.12, 0.56, 1.0)
+                elif (r, c) in explored_set and val != '*':
+                    color = (0.98, 0.85, 0.44)
                 elif val == 1:
                     color = (0.12, 0.12, 0.12)
                 elif val == '*':
@@ -170,7 +179,23 @@ def find_way(maze, start, end, search,title_name="Maze Solution"):
             label = 'S' if (r, c) == start else 'E'
             ax.text(c + 0.5, r + 0.5, label, ha='center', va='center', fontsize=12, fontweight='bold', color='white')
 
-        plt.title(f"{title_name} (Nodes Processed: {steps})", fontsize=12)
+        # Add legend
+        legend_handles = [
+            Rectangle((0, 0), 1, 1, facecolor=(0.98, 0.85, 0.44), edgecolor=(0.45, 0.45, 0.45), label='Explored'),
+            Rectangle((0, 0), 1, 1, facecolor=(0.98, 0.55, 0.20), edgecolor=(0.45, 0.45, 0.45), label='Path'),
+        ]
+        ax.legend(
+            handles=legend_handles,
+            loc='upper left',
+            bbox_to_anchor=(1.02, 1.0),
+            frameon=True,
+            facecolor='white',
+            edgecolor='0.8',
+            fontsize=9,
+            borderaxespad=0.0,
+        )
+
+        plt.title(f"{title_name} (Nodes Processed: {len(explored)})", fontsize=12)
         plt.tight_layout()
         plt.show()
         return
@@ -212,5 +237,5 @@ maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
-find_way(maze,start,end,depth_first_search)
+# find_way(maze,start,end,depth_first_search)
 # find_way(maze,start,end,breadth_first_search)
