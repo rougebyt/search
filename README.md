@@ -30,7 +30,7 @@ pip install matplotlib
 From the repository root:
 
 ```bash
-python3 maze.py
+python3 maze_search_visualizer.py
 ```
 
 Running the script will display the maze visualizations for both search strategies.
